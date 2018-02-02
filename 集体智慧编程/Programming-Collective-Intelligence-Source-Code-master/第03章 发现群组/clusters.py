@@ -89,14 +89,14 @@ def hcluster(rows,distance=pearson):
 
 def printclust(clust,labels=None,n=0):
   # indent to make a hierarchy layout
-  for i in range(n): print ' ',
+  for i in range(n): print(' '),
   if clust.id<0:
     # negative id means that this is branch
-    print '-'
+    print ('-')
   else:
     # positive id means that this is an endpoint
-    if labels==None: print clust.id
-    else: print labels[clust.id]
+    if labels==None: print(clust.id)
+    else: print (labels[clust.id])
 
   # now print the right and left branches
   if clust.left!=None: printclust(clust.left,labels=labels,n=n+1)
@@ -182,7 +182,7 @@ def kcluster(rows,distance=pearson,k=4):
   
   lastmatches=None
   for t in range(100):
-    print 'Iteration %d' % t
+    print ('Iteration %d' % t)
     bestmatches=[[] for i in range(k)]
     
     # Find which centroid is the closest for each row
@@ -257,7 +257,7 @@ def scaledown(data,distance=pearson,rate=0.01):
 
         # Keep track of the total error
         totalerror+=abs(errorterm)
-    print totalerror
+    print (totalerror)
 
     # If the answer got worse by moving the points, we are done
     if lasterror and lasterror<totalerror: break
