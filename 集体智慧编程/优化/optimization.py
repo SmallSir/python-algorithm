@@ -16,7 +16,7 @@ people = [('Seymour','BOS'),
 
 destination = 'LGA'
 flights = {}
-for line in file('schedule.txt'):
+for line in open('schedule.txt'):
     origin,dest,depart,arrive,price=line.strip().split(',')
     #orgin起点，dest终点
     flights.setdefault((origin,dest),[])
@@ -70,3 +70,40 @@ def schedulecost(sol):
         totalwait+=latestarrival-getminutes(outbound[1])
         #要离开时候每个人要等的时间
         totalwait+=getminutes(returnf[0])-earliestdep
+
+#随机搜索,domain表示每个变量的最小最大值，costf表示成本函数
+def randomoptimize(domain,costf):
+    best = 999999999
+    bestr = None
+    for i in range(1000):
+        #创建一个随机解
+        r = [random.randint(domain[i][0],domain[i][1])]
+        for i in range(len(domain)):
+            cost = costf(r)
+            if cost<best:
+                best =cost
+                bestr = r
+        return r
+
+
+#爬山方法 从一个随机的时间安排，然后让后某个人乘坐的航班稍早或者稍晚一些的安排，具有最低成本的安排将成为新的题解
+def hillclimb(domain,costf):
+    #创建一个随机解
+    sol=[random.randint(domain[i][0],domain[i][1]) for i in range(len(domain))]
+    while 1:
+        neighbors = []
+        for j in range(len(domain)):
+            if sol[j]>domain[j][0]:
+                neighbors.append(sol[0:j] + [sol[j]-1] + sol[j+1:])
+            if sol[j]>domain[j][1]:
+                neighbors.append(sol[0:j] + [sol[j] + 1] +sol[j+1:])
+        current = costf(sol)
+        best = current
+        for j in range(len(neighbors)):
+            cost  = costf(neighbors[j])
+            if cost <best:
+                best =cost
+                sol =neighbors[j]
+            if best == current:
+                break
+        return sol
