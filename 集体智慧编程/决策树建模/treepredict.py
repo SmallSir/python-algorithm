@@ -67,3 +67,52 @@ def entropy(rows):
                 p = float(results[r])/len(rows)
                 ent =ent-p*log2(p)
         return ent
+#递归方式建决策树
+def buildtree(rows,scoref = entropy):
+        if len(rows) == 0:
+                return decisionnode()
+        current_score = scoref(rows)
+        #定义一些变量以记录最佳拆分条件
+        best_gain = 0.0
+        best_criteria = None
+        best_sets = None
+
+        column_count = len(rows[0]) - 1
+        for col in range(0,column_count):
+                #在当前列中生成一个由不同值构成的序列
+                column_value = {}
+                for row in rows:
+                        column_value[row[col]] = 1
+                #接下来根据这一列中的每个值，尝试对数据集进行拆分
+                for value in column_value.keys():
+                        (set1,set2) = divideset(rows,col,value)
+                        #信息增益
+                        p =float(len(set1))/len(rows)
+                        gain = current_score-p*scoref(set1) - (1-p) * scoref(set2)
+                        if gain>best_gain and len(set1) >0 and len(set2)>0:
+                                best_gain = gain
+                                best_criteria = (col,value)
+                                best_sets = (set1,set2)
+        #创建子分支
+        if best_gain > 0:
+                trueBranch = buildtree(best_sets[0])
+                falseBranch = buildtree(best_sets[1])
+                return decisionnode(col = best_criteria[0],value=best_criteria[1],tb = trueBranch,fb = falseBranch)
+        else:
+                return decisionnode(results=uniquecounts(rows))
+#决策树的显示
+#文字显示
+def printtree(tree,indent =''):
+        if tree.results != None:
+                print(str(tree.results))
+        else:
+                #打印判断条件
+                print(str(tree.col) + ':' + str(tree.value) + '? ')
+                #打印分支
+                print(indent +'T->')
+                printtree(tree.tb,indent + '  ')
+                print(indent + 'F->')
+                printtree(tree.fb,indent + '  ')
+#图形显示
+tree = buildtree(my_data)
+print(printtree(tree))
