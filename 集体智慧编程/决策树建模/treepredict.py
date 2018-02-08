@@ -15,7 +15,7 @@ my_data=[['slashdot','USA','yes',18,'None'],
         ['google','UK','yes',18,'Basic'],
         ['kiwitobes','France','yes',19,'Basic']]
 
-
+from PIL import Image,ImageDraw
 class decisionnode:
         def __init__(self,col = -1,value = None,results =None,tb = None,fb = None):
                 self.col = col#待检验的判断条件所对应的列索引值
@@ -114,5 +114,70 @@ def printtree(tree,indent =''):
                 print(indent + 'F->')
                 printtree(tree.fb,indent + '  ')
 #图形显示
+#计算分支宽度
+def getwidth(tree):
+        if tree.tb  == tree.fb and tree.fb == None:
+                return 1
+        return getwidth(tree.tb) + getwidth(tree.fb)
+#计算分支深度
+def getdepth(tree):
+        if tree.tb == tree.fb and tree.tb == None:
+                return 0
+        return max(getdepth(tree.tb),getdepth(tree.fb))+1
+#为绘制的树确定一个合理尺寸
+def drawtree(tree,jpeg='tree.jpg'):
+        w = getwidth(tree) * 100
+        h = getdepth(tree) * 100 +120
+
+        img = Image.new('RGB',(w,h),(255,255,255))
+        draw = ImageDraw.Draw(img)
+
+        drawnode(draw,tree,w/2,20)
+        img.save(jpeg,'JPEG')
+#绘制决策树的节点
+def drawnode(draw,tree,x,y):
+        if tree.results == None:
+                #得到每个分支的宽度
+                w1 = getwidth(tree.fb) * 100
+                w2 = getwidth(tree.tb) * 100
+
+                #确定此节点所需要占据的总空间
+                left = x - (w1+w2)/2
+                right = x+(w1+w2)/2
+
+                #绘制判断条件的字符串
+                draw.text((x-20,y-20),str(tree.col)+':'+str(tree.value),(0,0,0))
+
+                #绘制到分支的连线
+                draw.line((x,y,left+w1/2,y+100),fill=(255,0,0))
+                draw.line((x,y,right-w2/2,y+100),fill=(255,0,0))
+
+                #绘制分支的节点
+                drawnode(draw,tree.fb,left+w1/2,y+100)
+                drawnode(draw,tree.tb,right-w2/2,y+100)
+        else:
+                txt = ' \n'.join(['%s:%d'%v for v in tree.results.items()])
+                draw.text((x-20,y),txt,(0,0,0))
+
+def classify(observation,tree):
+        if tree.results!=None:
+                return tree.results
+        else:
+                v=observation[tree.col]
+                branch = None
+                if isinstance(v,int) or isinstance(v,float):
+                        if v>=tree.value:
+                                branch = tree.tb
+                        else:
+                                branch = tree.fb
+                else:
+                        if v == tree.value:
+                                branch = tree.tb
+                        else:
+                                branch = tree.fb
+                return classify(observation,branch)
 tree = buildtree(my_data)
-print(printtree(tree))
+drawtree(tree,jpeg = 'treeview.jpg')
+
+
+
