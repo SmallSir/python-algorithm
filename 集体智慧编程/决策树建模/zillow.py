@@ -28,7 +28,9 @@ def getadderssdata(address,city):
 
 def getpricelist():
     l1 = []
-    for line in flie('addresslist.txt'):
+    with open('addresslist.txt','r') as fp:
+        lines = fp.readlines()
+        line = lines.pop()
         data = getadderssdata(line.strip(),'Cambridge,MA')
         l1.append(data)
     return l1
